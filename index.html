@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💉 Insuline Calculator</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4fc3f7;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border: none;
+      border-radius: 5px;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      font-size: 1rem;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.75rem;
+      width: 100%;
+      background-color: #4fc3f7;
+      border: none;
+      border-radius: 5px;
+      color: #000;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .resultaat {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #1e2b1e;
+      border-left: 5px solid #81c784;
+      border-radius: 5px;
+      font-size: 1.1rem;
+    }
+
+    .uitleg {
+      margin-top: 1rem;
+      background-color: #1f1f1f;
+      padding: 1rem;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>💉 Insuline Calculator</h1>
+
+<label for="maaltijd">Welke maaltijd wordt er gegeten?</label>
+<select id="maaltijd" onchange="updateFactor()">
+  <option value="5">Ontbijt (factor: 5)</option>
+  <option value="8">Middagmaal (factor: 8)</option>
+  <option value="7">Avondeten (factor: 7)</option>
+</select>
+
+<label><input type="checkbox" id="customFactorToggle" onchange="toggleFactor()"> Handmatig factor instellen</label>
+<input type="number" id="customFactor" placeholder="Aangepaste factor" min="1" step="1" style="display:none;">
+
+<label for="kh">Hoeveel koolhydraten worden er gegeten?</label>
+<input type="number" id="kh" placeholder="Bijv. 45" min="0" step="1">
+
+<label for="glucose">Op hoeveel staat de glucose op het moment?</label>
+<select id="glucose">
+  <option value="-2">0 - 59</option>
+  <option value="-1">60 - 79</option>
+  <option value="0">80 - 149</option>
+  <option value="1">150 - 199</option>
+  <option value="2">200 - 299</option>
+  <option value="3">300 - 399</option>
+  <option value="4">400 - 500</option>
+</select>
+
+<button onclick="bereken()">Bereken insuline</button>
+
+<div class="uitleg" id="details" style="display:none;"></div>
+<div class="resultaat" id="result" style="display:none;"></div>
+
+<script>
+function updateFactor() {
+  if (!document.getElementById("customFactorToggle").checked) {
+    document.getElementById("customFactor").value = '';
+  }
+}
+
+function toggleFactor() {
+  const isChecked = document.getElementById("customFactorToggle").checked;
+  document.getElementById("customFactor").style.display = isChecked ? "block" : "none";
+}
+
+function bereken() {
+  const maaltijdSelect = document.getElementById("maaltijd");
+  const maaltijdNaam = maaltijdSelect.options[maaltijdSelect.selectedIndex].text.split(" ")[0];
+  let factor = parseFloat(maaltijdSelect.value);
+
+  const customChecked = document.getElementById("customFactorToggle").checked;
+  const customFactor = parseFloat(document.getElementById("customFactor").value);
+  const kh = parseFloat(document.getElementById("kh").value);
+  const correctie = parseInt(document.getElementById("glucose").value);
+
+  if (customChecked && !isNaN(customFactor)) {
+    factor = customFactor;
+  }
+
+  if (isNaN(kh) || isNaN(factor) || factor <= 0) {
+    document.getElementById("result").style.display = "block";
+    document.getElementById("result").innerText = "⚠️ Vul geldige waarden in.";
+    return;
+  }
+
+  const basis = kh / factor;
+  const totaal = basis + correctie;
+
+  // Toon tussenberekeningen
+  const uitleg = `
+    🥣 Maaltijd: <strong>${maaltijdNaam}</strong><br/>
+    🔢 Factor: <strong>${factor}</strong><br/>
+    🍞 Koolhydraten: <strong>${kh}</strong><br/>
+    ➗ Berekening basis: ${kh} / ${factor} = <strong>${basis.toFixed(2)}E</strong><br/>
+    📉 Glucose correctie: <strong>${correctie > 0 ? "+" : ""}${correctie}E</strong><br/>
+    💉 Totaal: <strong>${totaal.toFixed(2)}E</strong>
+  `;
+
+  document.getElementById("details").innerHTML = uitleg;
+  document.getElementById("details").style.display = "block";
+
+  document.getElementById("result").innerHTML = `✅ Neem <strong>${totaal.toFixed(2)}E</strong> insuline.`;
+  document.getElementById("result").style.display = "block";
+}
+</script>
+
+</body>
+</html>
